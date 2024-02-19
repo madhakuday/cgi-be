@@ -1,6 +1,5 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../database/db');
-const Certificate = require('./Certificate');
 
 const User = sequelize.define(
   'Users',

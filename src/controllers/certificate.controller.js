@@ -3,21 +3,23 @@ const {
   updateCertificate,
   deleteCertificate,
   getUserCertificates,
-} = require("../services/certificate.service");
+} = require('../services/certificate.service');
 const {
   uploadImageToAWS,
   deleteImageFromAWS,
-} = require("../services/aws.service"); // Import your AWS service
+} = require('../services/aws.service'); // Import your AWS service
 const {
   sendSuccessResponse,
   sendErrorResponse,
-} = require("../helper/response.handler");
+} = require('../helper/response.handler');
 const {
   getCertificateById,
   getAllCertificates,
-} = require("../repos/certificate_repo");
+} = require('../repos/certificate_repo');
 
 const createCertificateController = async (req, res) => {
+  let generatedImageLink;
+  console.log('12 ');
   try {
     const {
       cgi_no,
@@ -27,17 +29,17 @@ const createCertificateController = async (req, res) => {
       sr_dr,
       reflective_index,
       specific_gravity,
+      certificate_type,
       inclusion,
       indian_name,
     } = req.body;
     const image = req.file; // Multer will store the uploaded file in req.file
-    console.log(req.user);
     const { id } = req.user;
-    console.log(id);
-    console.log(image);
 
     // Upload the image to AWS or another storage service
-    const generatedImageLink = await uploadImageToAWS(image); // Replace with your image upload service
+    if (image) {
+      generatedImageLink = await uploadImageToAWS(image); // Replace with your image upload service
+    }
     console.log(generatedImageLink);
 
     const certificate = await createCertificate({
@@ -49,6 +51,7 @@ const createCertificateController = async (req, res) => {
       sr_dr,
       reflective_index,
       specific_gravity,
+      certificate_type,
       inclusion,
       indian_name,
       certificate_image: generatedImageLink, // Use the generated image link
@@ -56,14 +59,17 @@ const createCertificateController = async (req, res) => {
 
     return sendSuccessResponse(res, certificate);
   } catch (error) {
+    if (generatedImageLink)
+      await deleteImageFromAWS(generatedImageLink.split('/').pop());
     // Handle errors
     console.error(error);
-    return sendErrorResponse(res, "Error creating certificate", 500);
+    return sendErrorResponse(res, error.message, 500);
   }
 };
 
 // Update a certificate
 const updateCertificateController = async (req, res) => {
+  let imageLink;
   try {
     const { id } = req.params;
     const {
@@ -76,6 +82,7 @@ const updateCertificateController = async (req, res) => {
       specific_gravity,
       inclusion,
       indian_name,
+      certificate_type,
       user_id, // Check if user_id is in req.body
     } = req.body;
 
@@ -85,11 +92,11 @@ const updateCertificateController = async (req, res) => {
     const existingCertificate = await getCertificateById(id);
 
     if (!existingCertificate) {
-      return sendErrorResponse(res, "Certificate not found", 404);
+      return sendErrorResponse(res, 'Certificate not found', 404);
     }
 
     // Check if the role is "user"
-    if (req.user.role === "user") {
+    if (req.user.role === 'user') {
       // For users, make sure the user_id matches their ID
       if (req.user.id !== existingCertificate.user_id) {
         return sendErrorResponse(
@@ -111,31 +118,32 @@ const updateCertificateController = async (req, res) => {
       specific_gravity,
       inclusion,
       indian_name,
+      certificate_type,
     };
 
     // Add user_id to the payload if it's present in req.body
     if (user_id) {
       certificatePayload.user_id = user_id;
     }
-
+    let prevImageLink;
     // Check if a new image is provided
     if (image) {
-      // Delete the previous image from AWS
-      const previousImage = existingCertificate.certificate_image
-        .split("/")
-        .pop();
-      await deleteImageFromAWS(previousImage);
+      // Get previous image link from AWS
+      prevImageLink = existingCertificate.certificate_image.split('/').pop();
 
       // Upload the new image to AWS and get its URL
-      const imageLink = await uploadImageToAWS(image);
+      imageLink = await uploadImageToAWS(image);
       certificatePayload.certificate_image = imageLink;
     }
 
     // Update the certificate with the new information
     await updateCertificate(id, certificatePayload);
 
-    return sendSuccessResponse(res, "Certificate updated successfully");
+    if (prevImageLink) await deleteImageFromAWS(prevImageLink);
+
+    return sendSuccessResponse(res, 'Certificate updated successfully');
   } catch (error) {
+    if (imageLink) await deleteImageFromAWS(imageLink.split('/').pop());
     console.log(error);
     return sendErrorResponse(res, error.message, 500);
   }
@@ -149,11 +157,11 @@ const deleteCertificateController = async (req, res) => {
     // Check if the certificate with the given ID exists
     const existingCertificate = await getCertificateById(id);
     if (!existingCertificate) {
-      return sendErrorResponse(res, "Certificate not found", 404);
+      return sendErrorResponse(res, 'Certificate not found', 404);
     }
 
     // Check if the role is "user"
-    if (req.user.role === "user") {
+    if (req.user.role === 'user') {
       // For users, make sure the user_id matches their ID
       if (req.user.id !== existingCertificate.user_id) {
         return sendErrorResponse(
@@ -165,13 +173,13 @@ const deleteCertificateController = async (req, res) => {
     }
 
     // Delete the image from AWS
-    const imageLink = existingCertificate.certificate_image.split("/").pop();
+    const imageLink = existingCertificate.certificate_image.split('/').pop();
     await deleteImageFromAWS(imageLink);
 
     // Delete the certificate from the database
     await deleteCertificate(id);
 
-    return sendSuccessResponse(res, "Certificate deleted successfully");
+    return sendSuccessResponse(res, 'Certificate deleted successfully');
   } catch (error) {
     console.error(error);
     return sendErrorResponse(res, error.message, 500);
@@ -181,7 +189,7 @@ const deleteCertificateController = async (req, res) => {
 // Get certificate controller
 const getCertificateController = async (req, res) => {
   try {
-    if (req.user.role === "admin") {
+    if (req.user.role === 'admin') {
       // If the user is an admin, fetch all certificates
       const certificates = await getAllCertificates();
       sendSuccessResponse(res, certificates);
@@ -192,7 +200,7 @@ const getCertificateController = async (req, res) => {
     }
   } catch (error) {
     console.error(error);
-    sendErrorResponse(res, "Error fetching certificates", 500);
+    sendErrorResponse(res, 'Error fetching certificates', 500);
   }
 };
 

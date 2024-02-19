@@ -7,7 +7,7 @@ const createCertificate = async (certificateData) => {
     return certificate;
   } catch (error) {
     console.log(error);
-    throw new Error("Error creating certificate");
+    throw error;
   }
 };
 

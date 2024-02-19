@@ -24,7 +24,39 @@ const getAllBanners = async () => {
   }
 };
 
+// Get banner by ID
+const getBannerById = async (id) => {
+  try {
+    const banner = await Banner.findByPk(id);
+    if (!banner) {
+      throw new Error("Banner not found");
+    }
+    return banner;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Delete a banner
+const deleteBanner = async (id) => {
+  try {
+    const deleted = await Banner.destroy({
+      where: { id },
+    });
+
+    if (!deleted) {
+      throw new Error("Banner not deleted");
+    }
+
+    return true;
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   createBanner,
   getAllBanners,
+  getBannerById,
+  deleteBanner,
 };

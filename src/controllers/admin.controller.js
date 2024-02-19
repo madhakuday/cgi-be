@@ -109,6 +109,27 @@ const getAllBannersController = async (req, res) => {
   }
 };
 
+const getAllUsersController = async (req, res) => {
+  try {
+    const users = await adminService.getAllUsers();
+    sendSuccessResponse(res, omitFields(users));
+  } catch (error) {
+    console.log(error);
+    sendErrorResponse(res, error.message);
+  }
+};
+
+const deleteBannerController = async (req, res) => {
+  try {
+    const bannerId = req.params.id;
+    const banner = await adminService.deleteBanner(bannerId);
+    sendSuccessResponse(res, "Banner deleted successfully");
+  } catch (error) {
+    console.log(error);
+    sendErrorResponse(res, error.message);
+  }
+};
+
 module.exports = {
   createUser,
   updateUser,
@@ -116,4 +137,6 @@ module.exports = {
   deleteUser,
   createBannerController,
   getAllBannersController,
+  getAllUsersController,
+  deleteBannerController,
 };

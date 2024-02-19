@@ -39,6 +39,16 @@ const Certificate = sequelize.define("Certificate", {
   certificate_image: {
     type: Sequelize.STRING,
   },
+  certificate_type: {
+    type: Sequelize.ENUM,
+    values: ["Gemstones", "Diamond", "Ornaments"],
+    validate: {
+      isIn: {
+        args: [["Gemstones", "Diamond", "Ornaments"]],
+        msg: "Must be a valid certificate type",
+      },
+    },
+  },
   user_id: {
     type: Sequelize.INTEGER,
     references: {

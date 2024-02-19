@@ -1,16 +1,17 @@
-const express = require("express");
-const crypto = require("crypto");
+const express = require('express');
+const crypto = require('crypto');
 
-const multer = require("multer"); // Import Multer
+const multer = require('multer'); // Import Multer
 const {
   createCertificateController,
   updateCertificateController,
   deleteCertificateController,
   getCertificateController,
-} = require("../controllers/certificate.controller");
-const deserializeUser = require("../middleware/deserialize.middleware");
-const { isUser } = require("../middleware/checkRole.middleware");
-const storage = require("../utils/fileStorage.config");
+} = require('../controllers/certificate.controller');
+const deserializeUser = require('../middleware/deserialize.middleware');
+const { isUser } = require('../middleware/checkRole.middleware');
+const storage = require('../utils/fileStorage.config');
+const { sendErrorResponse } = require('../helper/response.handler');
 
 const router = express.Router();
 
@@ -22,24 +23,31 @@ const upload = multer({ storage });
 router.use(deserializeUser);
 
 router.post(
-  "/create",
+  '/create',
   isUser,
-  upload.single("certificate_image"),
+  upload.single('certificate_image'),
+  (req, res, next) => {
+    // if (!req.file) {
+    //   sendErrorResponse(res, 'certificate_image is required', 400);
+    // } else {
+    next();
+    // }
+  },
   createCertificateController
 );
 
 // Get certificates
 // Retrieves all certificate if admin and only user certificate if user
-router.get("/getCertificates", getCertificateController);
+router.get('/getCertificates', getCertificateController);
 
 // Update a certificate (requires admin role)
 router.put(
-  "/:id",
-  upload.single("certificate_image"),
+  '/:id',
+  upload.single('certificate_image'),
   updateCertificateController
 );
 
 // Delete a certificate by ID (requires admin role)
-router.delete("/:id", deleteCertificateController);
+router.delete('/:id', deleteCertificateController);
 
 module.exports = router;

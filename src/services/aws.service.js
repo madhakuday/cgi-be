@@ -40,7 +40,7 @@ const uploadImageToAWS = async (file) => {
     return imageUrl;
   } catch (error) {
     console.error(error);
-    throw new Error("Problem in uploading the image to AWS");
+    throw new Error("Problem in uploading the image");
   }
 };
 
@@ -53,8 +53,8 @@ const deleteImageFromAWS = async (fileName) => {
     const deleteCommand = new DeleteObjectCommand(deleteParams);
     await s3.send(deleteCommand);
   } catch (error) {
-    console.error("Error deleting file from AWS:", error);
-    throw new Error("Problem in deleting the image from AWS");
+    console.error(error);
+    throw new Error("Problem in deleting the image");
   }
 };
 

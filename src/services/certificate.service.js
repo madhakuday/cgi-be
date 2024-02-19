@@ -9,7 +9,7 @@ const createCertificate = async (certificateData) => {
     return certificate;
   } catch (error) {
     // Handle errors, e.g., log the error or throw a custom error
-    throw new Error("Error creating certificate");
+    throw error;
   }
 };
 

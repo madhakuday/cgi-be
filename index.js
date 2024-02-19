@@ -18,6 +18,8 @@ const PORT = process.env.PORT || 8000;
 
 console.log("DB_NAME ::", process.env.DB_NAME);
 console.log("DB_HOST ::", process.env.DB_HOST);
+
+app.get('/happy',(req,res)=>{res.send('Happy!')})
 app.use(bodyParser.json());
 app.use(cors());
 app.use(express.urlencoded({ extended: false }));

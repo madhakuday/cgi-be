@@ -2,6 +2,7 @@ const authUtils = require("../utils/authUtils"); // Import the auth utility func
 const usersRepo = require("../repos/users_repo");
 const bannerRepo = require("../repos/banner_repo");
 const bcrypt = require("bcrypt");
+const { deleteImageFromAWS } = require("./aws.service");
 
 const createUser = async (userData) => {
   try {
@@ -89,6 +90,29 @@ const getAllBanners = async (req, res) => {
   }
 };
 
+const getAllUsers = async () => {
+  try {
+    const users = await usersRepo.getAllUsers();
+    return users;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const deleteBanner = async (bannerId) => {
+  let prevBannerImg;
+  try {
+    const banner = await bannerRepo.getBannerById(bannerId);
+    prevBannerImg = banner.imageLink;
+    const bannerDeleted = await bannerRepo.deleteBanner(bannerId);
+    return bannerDeleted;
+  } catch (error) {
+    throw error;
+  } finally {
+    if (prevBannerImg) await deleteImageFromAWS(prevBannerImg.split("/").pop());
+  }
+};
+
 module.exports = {
   createUser,
   updateUser,
@@ -96,4 +120,6 @@ module.exports = {
   deleteUser,
   createBanner,
   getAllBanners,
+  getAllUsers,
+  deleteBanner,
 };

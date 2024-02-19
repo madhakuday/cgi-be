@@ -9,6 +9,7 @@ const upload = multer({ storage });
 
 const deserializeUser = require("../middleware/deserialize.middleware"); // User authentication middleware
 const { isAdmin } = require("../middleware/checkRole.middleware"); // Admin role checking middleware
+const { route } = require("./certificate.routes");
 
 // Middleware for user authentication
 router.use(deserializeUser);
@@ -35,5 +36,10 @@ router.post(
 
 // Get all banners
 router.get("/getAllBanners", isAdmin, adminController.getAllBannersController);
+
+router.delete("/banner/:id", isAdmin, adminController.deleteBannerController);
+
+// Get all users
+router.get("/getAllUsers", isAdmin, adminController.getAllUsersController);
 
 module.exports = router;

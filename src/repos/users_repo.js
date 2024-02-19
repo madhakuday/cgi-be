@@ -71,6 +71,15 @@ const isEmailExists = async (email) => {
   }
 };
 
+const getAllUsers = async () => {
+  try {
+    const users = await User.findAll();
+    return users;
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   createUser,
   updateUser,
@@ -78,4 +87,5 @@ module.exports = {
   deleteUser,
   getUserByEmail,
   isEmailExists,
+  getAllUsers,
 };
