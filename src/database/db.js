@@ -16,12 +16,10 @@ const sequelize = new Sequelize(databaseName, dbUser, dbPass, {
   host: dbHost,
   dialect: 'mysql',
   ssl: 'Amazon RDS',
-  port: 35876,
+  port: 3306,
   logging: console.log,
   query: { raw: true },
-
   pool: { maxConnections: 5, maxIdleTime: 30 },
-
   timezone: '+05:30',
 });
 
